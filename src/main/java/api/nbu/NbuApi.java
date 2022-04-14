@@ -1,38 +1,45 @@
 package api.nbu;
 
-import api.monobank.CurrencyMonoBank;
-import api.monobank.MonoBankApi;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.jsoup.Jsoup;
+import api.ApiService;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class NbuApi {
+public class NbuApi extends ApiService {
     private static final String URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
 
+    private static final String FILE = "src/main/java/api/nbu/nbu.json";
 
-    public CurrencyNbu[] getCurrency() throws IOException, InterruptedException {
+    public void writeCurrencyToFile() {
+        String text = getJsoup(URL);
 
-        String text = Jsoup
-                .connect(URL)
-                .ignoreContentType(true)
-                .get()
-                .body()
-                .text();
+        try {
+            FileWriter fileWriter = new FileWriter(FILE);
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        CurrencyNbu[] currency = gson.fromJson(text, CurrencyNbu[].class);
+            fileWriter.write(text);
 
-        return currency;
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        NbuApi nbuApi = new NbuApi();
-        CurrencyNbu[] df = nbuApi.getCurrency();
-        for (int i = 0; i < df.length; i++) {
-            System.out.println(df[i]);
+    public List<CurrencyNbu> getCurrency() throws IOException {
+        CurrencyNbu[] currencyNbu = gson.fromJson(new FileReader(FILE), CurrencyNbu[].class);
+
+        List<CurrencyNbu> currencyNbuList = new ArrayList<>();
+
+        for (CurrencyNbu nbu : currencyNbu) {
+            if (nbu.getR030() == 840 || nbu.getR030() == 978) {
+                currencyNbuList.add(nbu);
+            }
         }
+
+        return currencyNbuList;
     }
 }

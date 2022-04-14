@@ -10,14 +10,19 @@ public abstract class ApiService {
 
     public Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public String getJsoup(String URL) throws IOException {
-        String text = Jsoup
-                .connect(URL)
-                .timeout(5000)
-                .ignoreContentType(true)
-                .get()
-                .body()
-                .text();
+    public String getJsoup(String URL) {
+        String text = null;
+        try {
+            text = Jsoup
+                    .connect(URL)
+                    .timeout(5000)
+                    .ignoreContentType(true)
+                    .get()
+                    .body()
+                    .text();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return text;
     }

@@ -1,38 +1,46 @@
 package api.privatbank;
 
-import api.monobank.CurrencyMonoBank;
-import api.monobank.MonoBankApi;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.jsoup.Jsoup;
+import api.ApiService;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PrivatBankApi {
+public class PrivatBankApi extends ApiService {
     private static final String URL = "https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5";
 
+    private static final String FILE = "src/main/java/api/privatbank/privatBank.json";
 
-    public CurrencyPrivatBank[] getCurrency() throws IOException, InterruptedException {
+    public void writeCurrencyToFile() {
 
-        String text = Jsoup
-                .connect(URL)
-                .ignoreContentType(true)
-                .get()
-                .body()
-                .text();
+        String text = getJsoup(URL);
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        CurrencyPrivatBank[] currency = gson.fromJson(text, CurrencyPrivatBank[].class);
+        try {
+            FileWriter fileWriter = new FileWriter(FILE);
 
-        return currency;
+            fileWriter.write(text);
 
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        PrivatBankApi privatBankApi = new PrivatBankApi();
-        CurrencyPrivatBank[] df = privatBankApi.getCurrency();
-        for (int i = 0; i < df.length; i++) {
-            System.out.println(df[i]);
+    public List<CurrencyPrivatBank> readFromFileJPrivat() throws FileNotFoundException {
+
+        CurrencyPrivatBank[] currencyPrivatBanks = gson.fromJson(new FileReader(FILE), CurrencyPrivatBank[].class);
+
+        List<CurrencyPrivatBank> currencyPrivatBankList = new ArrayList<>();
+
+        for (CurrencyPrivatBank currencyPrivatBank : currencyPrivatBanks) {
+            if (currencyPrivatBank.getCcy().equals("USD") || currencyPrivatBank.getCcy().equals("EUR")) {
+                currencyPrivatBankList.add(currencyPrivatBank);
+            }
         }
+
+        return currencyPrivatBankList;
     }
 }
